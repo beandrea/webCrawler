@@ -1,5 +1,3 @@
-const URL = require('node:url');
-
 const normalizeURL = (url) => {
     const urlObj = new URL(url);
     let fullPath = `${urlObj.host}${urlObj.pathname}`
