@@ -1,12 +1,14 @@
 import { JSDOM } from 'jsdom'
 
-const normalizeURL = (url) => {
+const normalizeURL = url => {
     const urlObj = new URL(url);
-    let fullPath = `${urlObj.host}${urlObj.pathname}`
+    let fullPath = `${urlObj.host}${urlObj.pathname}`;
+
     if (fullPath.slice(-1) === '/') {
-        fullPath = fullPath.slice(0, -1)
+        fullPath = fullPath.slice(0, -1);
     }
-    return fullPath
+
+    return fullPath;
 }
 
 const getURLsFromHTML = (htmlBody, baseURL) => {
@@ -30,4 +32,29 @@ const getURLsFromHTML = (htmlBody, baseURL) => {
     return urls;
 }
 
-export { normalizeURL, getURLsFromHTML }
+const crawlPage = async currURL => {
+    console.log(`crawling ${currURL}`);
+
+    let res
+
+    try {
+        res = await fetch(currURL);
+    } catch (err) {
+        throw new Error(`Got network error ${err.messsage}`);
+    }
+
+    if (res.status > 399) {
+        console.log(`Got http error ${res.status} ${res.statusText}`);
+        return
+    }
+
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('text/html')) {
+       console.log(`Got non-html response: ${contentType}`);
+       return
+    }
+
+    console.log(await res.text());
+}
+
+export { normalizeURL, getURLsFromHTML, crawlPage }
