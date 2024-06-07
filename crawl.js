@@ -32,29 +32,58 @@ const getURLsFromHTML = (htmlBody, baseURL) => {
     return urls;
 }
 
-const crawlPage = async currURL => {
-    console.log(`crawling ${currURL}`);
-
+const fetchHTML = async url => {
     let res
-
     try {
-        res = await fetch(currURL);
+        res = await fetch(url);
     } catch (err) {
-        throw new Error(`Got network error ${err.messsage}`);
+        throw new Error(`got network err: ${err.message}`);
     }
 
     if (res.status > 399) {
-        console.log(`Got http error ${res.status} ${res.statusText}`);
-        return
+        throw new Error(`got http error: ${res.status} ${res.statusText}`);
     }
 
     const contentType = res.headers.get('content-type');
-    if (!contentType || !contentType.includes('text/html')) {
-       console.log(`Got non-html response: ${contentType}`);
-       return
+    if (!contentType || !contentType.includes('text/html')){
+        throw new Error(`got non html response: ${contentType}`);
     }
 
-    console.log(await res.text());
+    return res.text();
+}
+
+const crawlPage = async (baseURL, currURL = baseURL, pages = {}) => {
+    const currURL_Obj = new URL(currURL);
+    const baseURL_Obj = new URL(baseURL);
+
+    if (currURL_Obj.hostname !== baseURL_Obj.hostname) {
+        return pages;
+    }
+
+    const normalizedURL = normalizeURL(currURL);
+
+    if (pages[normalizedURL] > 0) {
+        pages[normalizedURL]++;
+        return pages;
+    }
+
+    pages[normalizedURL] = 1;
+    console.log(`crawling ${currURL}`);
+    let html = '';
+
+    try {
+        html = await fetchHTML(currURL);
+    } catch (err) {
+        console.log(`${err.message}`);
+        return pages;
+    }
+
+    const embedded_URLs = getURLsFromHTML(html, baseURL);
+    for (const embedded_URL of embedded_URLs) {
+        pages = await crawlPage(baseURL, embedded_URL, pages);
+    }
+
+    return pages;
 }
 
 export { normalizeURL, getURLsFromHTML, crawlPage }

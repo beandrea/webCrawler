@@ -2,18 +2,19 @@ import { crawlPage } from './crawl.js'
 
 async function main() {
     if (process.argv.length < 3) {
-        console.log('no website provided')
+        console.log('no website provided');
         return
     }
     if (process.argv.length > 3) {
-        console.log('too many arguments provided')
+        console.log('too many arguments provided');
         return
     }
-    const baseURL = process.argv[2]
+    const baseURL = process.argv[2];
 
-    console.log(`starting crawl of: ${baseURL}...`)
+    console.log(`starting crawl of: ${baseURL}...`);
 
-    await crawlPage(baseURL)
+    const pages = await crawlPage(baseURL);
+    console.log(pages)
 }
 
-main()
+main();
